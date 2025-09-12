@@ -34,22 +34,22 @@ Please don't hesitate to ask questions here before, during, or after class!
 
 ## Workshop Agenda
 
-- LLM Foundations [/01-llm-foundations](https://github.com/MoonHighway/ai-cascadiajs/tree/main/01-llm-foundations)
+- LLM Foundations [[/01-llm-foundations](https://github.com/MoonHighway/ai-cascadiajs/tree/main/01-llm-foundations)]
     - Working with the OpenAI API 
     - Prompt Engineering Principles
     - Developer Tools and Coding Assistants
-    - Lab: Job Interview [/02-llm-foundations-lab](https://github.com/MoonHighway/ai-cascadiajs/tree/main/02-llm-foundations-lab)
-- Creating a Streaming Interface with Next.js [/03-generating-text](https://github.com/MoonHighway/ai-cascadiajs/tree/main/03-generating-text)
+    - Lab: Job Interview [[/02-llm-foundations-lab](https://github.com/MoonHighway/ai-cascadiajs/tree/main/02-llm-foundations-lab)]
+- Creating a Streaming Interface with Next.js [[/03-generating-text](https://github.com/MoonHighway/ai-cascadiajs/tree/main/03-generating-text)]
     - Understanding the AI SDK
     - Generating Text
-    - Building Streaming Chat Interfaces [/04-streaming](https://github.com/MoonHighway/ai-cascadiajs/tree/main/04-streaming)
+    - Building Streaming Chat Interfaces [[/04-streaming](https://github.com/MoonHighway/ai-cascadiajs/tree/main/04-streaming)]
     - Using Hooks
     - Lab: Managing Context and Messages
-- AI Agent Architecture and Planning [/05-ai-agents](https://github.com/MoonHighway/ai-cascadiajs/tree/main/05-ai-agents)
+- AI Agent Architecture and Planning [[/05-ai-agents](https://github.com/MoonHighway/ai-cascadiajs/tree/main/05-ai-agents)]
     - Tool Calling and Selection
     - Differences between Tools and Agents
     - Building the Hiking Concierge App
-    - Multi-step reasoning [/06-advanced-agents](https://github.com/MoonHighway/ai-cascadiajs/tree/main/06-advanced-agents)
+    - Multi-step reasoning [[/06-advanced-agents](https://github.com/MoonHighway/ai-cascadiajs/tree/main/06-advanced-agents)]
     - Lab: Adding Custom Tools to the Concierge
 
 ## Useful Resources
