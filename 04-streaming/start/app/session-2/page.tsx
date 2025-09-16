@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useChat } from 'ai/react';
 
 export default function Session2() {
@@ -8,64 +9,116 @@ export default function Session2() {
   });
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Session 2: Streaming Chat</h1>
-      
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="h-96 overflow-y-auto mb-4 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`p-3 rounded-lg ${
-                message.role === 'user'
-                  ? 'bg-blue-100 ml-12'
-                  : 'bg-gray-100 mr-12'
-              }`}
-            >
-              <div className="font-semibold text-sm mb-1">
-                {message.role === 'user' ? 'You' : 'DevMate'}
-              </div>
-              <div className="whitespace-pre-wrap">{message.content}</div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="bg-gray-100 mr-12 p-3 rounded-lg">
-              <div className="font-semibold text-sm mb-1">DevMate</div>
-              <div className="text-gray-500">Thinking...</div>
-            </div>
-          )}
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            value={input}
-            onChange={handleInputChange}
-            placeholder="Ask DevMate anything..."
-            className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {isLoading ? 'Stop' : 'Send'}
-          </button>
-          {isLoading && (
-            <button
-              type="button"
-              onClick={stop}
-              className="px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              Stop
-            </button>
-          )}
-        </form>
-
-        {error && (
-          <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            Error: {error.message}
+    <div className="chat-container">
+      <div style={{ width: '100%', maxWidth: '1200px', zIndex: 10, position: 'relative' }}>
+        {/* Header */}
+        <div className="header">
+          <div className="header-content">
+            <div className="header-icon">🤖</div>
+            <h1 className="header-title">DevMate</h1>
           </div>
-        )}
+          <p className="header-subtitle">Your intelligent programming companion</p>
+        </div>
+        
+        {/* Chat Box */}
+        <div className="chat-box">
+          {/* Messages */}
+          <div className="messages-area">
+            {messages.length === 0 && (
+              <div className="empty-state">
+                <div className="empty-content">
+                  <div className="empty-icon">💬</div>
+                  <h3 className="empty-title">Ready to code together?</h3>
+                  <p className="empty-description">
+                    Ask me about debugging, best practices, code reviews, or any programming concepts you'd like to explore.
+                  </p>
+                  <div className="suggestion-buttons">
+                    <button className="suggestion-btn">🐛 Debug my code</button>
+                    <button className="suggestion-btn">📝 Code review</button>
+                    <button className="suggestion-btn">⚡ Best practices</button>
+                    <button className="suggestion-btn">🏗️ Architecture</button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {messages.map((message) => (
+              <div key={message.id} className={`message ${message.role}`}>
+                {message.role !== 'user' && (
+                  <div className="message-avatar assistant">🤖</div>
+                )}
+                
+                <div className={`message-bubble ${message.role}`}>
+                  <div className="message-role">
+                    {message.role === 'user' ? 'You' : 'DevMate'}
+                  </div>
+                  <div className="message-content">{message.content}</div>
+                </div>
+                
+                {message.role === 'user' && (
+                  <div className="message-avatar user">👤</div>
+                )}
+              </div>
+            ))}
+            
+            {isLoading && (
+              <div className="loading-message">
+                <div className="message-avatar assistant">🤖</div>
+                <div className="message-bubble assistant">
+                  <div className="message-role">DevMate</div>
+                  <div className="loading-dots">
+                    <div className="loading-dot"></div>
+                    <div className="loading-dot"></div>
+                    <div className="loading-dot"></div>
+                    <span style={{ marginLeft: '12px', color: '#6b7280' }}>Thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Input */}
+          <div className="input-area">
+            <form onSubmit={handleSubmit} className="input-form">
+              <div className="input-wrapper">
+                <input
+                  value={input}
+                  onChange={handleInputChange}
+                  placeholder="Ask DevMate anything about programming..."
+                  className="input-field"
+                />
+                {input && <div className="input-hint">Enter</div>}
+              </div>
+              
+              <button
+                type="submit"
+                disabled={isLoading || !input.trim()}
+                className="send-btn"
+              >
+                {isLoading ? '⏹️' : '🚀'}
+                <span style={{ display: window.innerWidth > 640 ? 'inline' : 'none' }}>
+                  {isLoading ? 'Stop' : 'Send'}
+                </span>
+              </button>
+              
+              {isLoading && (
+                <button type="button" onClick={stop} className="stop-btn">
+                  ⏹️
+                </button>
+              )}
+            </form>
+
+            {error && (
+              <div className="error-message">
+                <div className="error-icon">⚠️</div>
+                <div>
+                  <div className="error-label">Oops!</div>
+                  <div className="error-text">{error.message}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
