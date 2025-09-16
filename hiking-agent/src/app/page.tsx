@@ -1,7 +1,44 @@
 "use client";
 import { useState } from "react";
 import { UIMessage, useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, UIDataTypes, UIMessagePart, UITools } from "ai";
+import { DefaultChatTransport } from "ai";
+
+// Define proper types for message parts
+interface TextPart {
+  type: 'text';
+  text: string;
+}
+
+interface StepStartPart {
+  type: 'step-start';
+}
+
+interface ToolPart {
+  type: string; // tool-getWeather, tool-getGearRecommendations, etc.
+  output?: string;
+  text?: string;
+  result?: string;
+}
+
+interface ToolCallPart {
+  type: 'tool-call';
+  toolName?: string;
+  args?: Record<string, unknown>;
+}
+
+interface ToolResultPart {
+  type: 'tool-result';
+  result?: string;
+}
+
+interface UnknownPart {
+  type: string;
+  text?: string;
+  result?: string;
+  [key: string]: unknown;
+}
+
+type MessagePart = TextPart | StepStartPart | ToolPart | ToolCallPart | ToolResultPart | UnknownPart;
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -27,6 +64,91 @@ export default function Home() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send message');
       console.error('Failed to send message:', err);
+    }
+  };
+
+  const renderMessagePart = (part: MessagePart, index: number) => {
+    switch (part.type) {
+      case 'text':
+        return (
+          <span key={index} className="leading-relaxed block">
+            {part.text}
+          </span>
+        );
+
+      case 'step-start':
+        return (
+          <div key={index} className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-3 my-2">
+            <div className="flex items-center text-blue-400 text-sm font-medium">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Starting tool execution...
+            </div>
+          </div>
+        );
+
+      case 'tool-call':
+        return (
+          <div key={index} className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-3 my-2">
+            <div className="flex items-center text-blue-400 text-sm font-medium mb-1">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Using tool: {(part as ToolCallPart).toolName || 'Unknown'}
+            </div>
+            <div className="text-gray-300 text-sm font-mono">
+              {JSON.stringify((part as ToolCallPart).args || {}, null, 2)}
+            </div>
+          </div>
+        );
+
+      case 'tool-result':
+        return (
+          <div key={index} className="bg-green-900/20 border border-green-800/50 rounded-lg p-3 my-2">
+            <div className="flex items-center text-green-400 text-sm font-medium mb-2">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Tool Result
+            </div>
+            <div className="text-gray-100 whitespace-pre-line font-mono text-sm">
+              {(part as ToolResultPart).result || 'No result'}
+            </div>
+          </div>
+        );
+
+      default:
+        // Handle tool-specific parts (tool-getWeather, tool-getGearRecommendations, etc.)
+        if (part.type.startsWith('tool-')) {
+          const toolName = part.type.replace('tool-', '');
+          const toolPart = part as ToolPart;
+          return (
+            <div key={index} className="bg-green-900/20 border border-green-800/50 rounded-lg p-3 my-2">
+              <div className="flex items-center text-green-400 text-sm font-medium mb-2">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {toolName} Result
+              </div>
+              <div className="text-gray-100 whitespace-pre-line font-mono text-sm">
+                {toolPart.output || toolPart.text || toolPart.result || 'Tool executed'}
+              </div>
+            </div>
+          );
+        }
+
+        // Handle unknown parts with debug info
+        console.log('Unknown part:', part);
+        const unknownPart = part as UnknownPart;
+        return (
+          <div key={index} className="text-gray-400 text-sm bg-gray-800/20 p-2 rounded">
+            Unknown part type: {part.type}
+            {unknownPart.text && <div className="mt-1 text-xs">{unknownPart.text}</div>}
+            {unknownPart.result && <div className="mt-1 text-xs">{unknownPart.result}</div>}
+          </div>
+        );
     }
   };
 
@@ -82,93 +204,9 @@ export default function Home() {
                         : 'bg-gray-900 text-gray-100 border border-gray-800'
                     }`}>
                       <div className="prose prose-sm max-w-none space-y-2">
-                        {message.parts.map((part: UIMessagePart<UIDataTypes, UITools>, index: number) => {
-                          if (part.type === 'text') {
-                            return (
-                              <span key={index} className="leading-relaxed block">
-                                {part.text as string}
-                              </span>
-                            );
-                          }
-                          
-                          // Handle step-start
-                          if (part.type === 'step-start') {
-                            return (
-                              <div key={index} className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-3 my-2">
-                                <div className="flex items-center text-blue-400 text-sm font-medium">
-                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                  </svg>
-                                  Starting tool execution...
-                                </div>
-                              </div>
-                            );
-                          }
-                          
-                          // Handle tool calls (tool-getWeather, tool-getGearRecommendations, etc.)
-                          if (part.type.startsWith('tool-')) {
-                            const toolName = part.type.replace('tool-', '');
-                            return (
-                              <div key={index} className="bg-green-900/20 border border-green-800/50 rounded-lg p-3 my-2">
-                                <div className="flex items-center text-green-400 text-sm font-medium mb-2">
-                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  {toolName} Result
-                                </div>
-                                <div className="text-gray-100 whitespace-pre-line font-mono text-sm">
-                                  {(part as { output?: any; text?: string }).output?.toString() || 
-                                   (part as { output?: any; text?: string }).text as string || 
-                                   'Tool executed'}
-                                </div>
-                              </div>
-                            );
-                          }
-                          
-                          // Handle traditional tool-call and tool-result (fallback)
-                          if (part.type === 'tool-call') {
-                            return (
-                              <div key={index} className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-3 my-2">
-                                <div className="flex items-center text-blue-400 text-sm font-medium mb-1">
-                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                  </svg>
-                                  Using tool: {(part as any).toolName || 'Unknown'}
-                                </div>
-                                <div className="text-gray-300 text-sm font-mono">
-                                  {JSON.stringify((part as any).args || {}, null, 2)}
-                                </div>
-                              </div>
-                            );
-                          }
-                          
-                          if (part.type === 'tool-result') {
-                            return (
-                              <div key={index} className="bg-green-900/20 border border-green-800/50 rounded-lg p-3 my-2">
-                                <div className="flex items-center text-green-400 text-sm font-medium mb-2">
-                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  Tool Result
-                                </div>
-                                <div className="text-gray-100 whitespace-pre-line font-mono text-sm">
-                                  {(part as any).result || 'No result'}
-                                </div>
-                              </div>
-                            );
-                          }
-                          
-                          // Debug: Show unknown part types (you can remove this later)
-                          console.log('Unknown part:', part);
-                          return (
-                            <div key={index} className="text-gray-400 text-sm bg-gray-800/20 p-2 rounded">
-                              Unknown part type: {part.type}
-                              {(part as any).text && <div className="mt-1 text-xs">{(part as any).text}</div>}
-                              {(part as any).result && <div className="mt-1 text-xs">{(part as any).result}</div>}
-                            </div>
-                          );
-                        })}
+                        {message.parts.map((part, index) => 
+                          renderMessagePart(part as MessagePart, index)
+                        )}
                       </div>
                     </div>
                   </div>

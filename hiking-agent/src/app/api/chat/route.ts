@@ -1,43 +1,31 @@
 //use the streamText function to handle a response from the openai api
-import { convertToModelMessages, streamText, tool} from 'ai';
+import { convertToModelMessages, generateText, streamText, tool} from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
 
 export const weatherTool = tool({
-  description: 'Get the weather for a given hiking location',
-  inputSchema: z.object({
-    location: z.string().describe("The location of the hiking trail"),
-    date: z.string().describe("The date of the hiking trail"),
-  }),
-  execute: async ({ location, date }) => {
-    console.log('Weather tool called with:', { location, date });
-    
-    const weather = {
-      location, 
-      date, 
-      temperature_high: 70, 
-      temperature_low: 50, 
-      precipitation_chance: 0.1, 
-      wind_speed: 10, 
-      visibility: 10, 
-      conditions: "sunny", 
-      uv_index: 7,
-      hiking_recommendation: "good"
-    };
-    
-    const result = `Weather for ${location} on ${date}:
-    - Temperature: ${weather.temperature_high}°F - ${weather.temperature_low}°F
-    - Conditions: ${weather.conditions}
-    - Precipitation: ${weather.precipitation_chance * 100}% chance of rain
-    - Wind: ${weather.wind_speed} mph 
-    - Visibility: ${weather.visibility} miles
-    - UV Index: ${weather.uv_index} (High)
-    - Hiking Recommendation: ${weather.hiking_recommendation}`;
-    
-    console.log('Weather tool returning:', result);
-    return Promise.resolve(result);
-  },
-});
+    description: 'Get the weather for a given hiking location',
+    inputSchema: z.object({
+      location: z.string().describe("The location of the hiking trail"),
+      date: z.string().describe("The date of the hiking trail"),
+    }),
+    execute: async ({ location, date }) => {
+      console.log('Weather tool called with:', { location, date });
+      
+      try {
+        const result = await generateText({
+          model: openai('gpt-4o'),
+          prompt: `What would be realistic weather conditions for hiking at ${location} on ${date}? Include temperature range, conditions, precipitation chance, wind speed, visibility, UV index, and a hiking recommendation. Format it clearly for a hiker.`,
+        });
+        
+        console.log('Weather tool returning:', result.text);
+        return result.text;
+      } catch (error) {
+        console.error('Error calling OpenAI:', error);
+        return `Unable to get weather data for ${location} on ${date}. Please check conditions locally before hiking.`;
+      }
+    },
+  });
 
 export const gearTool = tool({
   description: 'Recommend hiking gear based on weather conditions and trip details',
