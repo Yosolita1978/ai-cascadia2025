@@ -6,7 +6,7 @@ export default function Session1() {
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('javascript');
   const [review, setReview] = useState('');
-  const [usage, setUsage] = useState(null);
+  const [usage, setUsage] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 

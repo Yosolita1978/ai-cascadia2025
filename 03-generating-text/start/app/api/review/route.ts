@@ -8,28 +8,30 @@ export async function POST(req: NextRequest) {
   try {
     const { code, language } = await req.json();
 
-    // TODO: Session 1 - Implement code review using AI SDK
-    // 1. Use generateText from 'ai' package
-    // 2. Use openai('gpt-4o-mini') as the model
-    // 3. Create a prompt that asks the AI to review the code
-    // 4. Include the code and language in your prompt
-    // 5. Set maxTokens to 500
-    // 6. Return the result with review text and usage stats
+    const result = await generateText({
+      model: openai('gpt-4o-mini'),
+      prompt: `Please review this ${language} code and provide feedback on:
+- Code quality and best practices
+- Potential bugs or issues
+- Performance considerations
+- Readability and maintainability
+- Security concerns (if any)
+
+Code to review:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Provide constructive feedback in a clear, organized format.`,
+      maxTokens: 500,
+    });
     
-    // HINT: The structure should be:
-    // const result = await generateText({
-    //   model: openai('gpt-4o-mini'),
-    //   prompt: `Your prompt here with ${language} and ${code}`,
-    //   maxTokens: 500,
-    // });
-    
-    // PLACEHOLDER - Replace this with actual AI call
     return Response.json({
-      review: "TODO: Implement AI code review using generateText()",
+      review: result.text,
       usage: {
-        promptTokens: 0,
-        completionTokens: 0,
-        totalTokens: 0,
+        promptTokens: result.usage.promptTokens,
+        completionTokens: result.usage.completionTokens,
+        totalTokens: result.usage.totalTokens,
       },
     });
   } catch (error) {
